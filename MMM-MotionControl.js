@@ -7,7 +7,7 @@
 
 Module.register("MMM-MotionControl",{
 	defaults: {
-    delay: 5000,
+    delay: 15000,
     useFacialRecognitionOCV3: false
   },
 

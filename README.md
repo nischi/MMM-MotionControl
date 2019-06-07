@@ -10,8 +10,8 @@ We can't do a Screenshot because it runs in the background :) It's only react on
 
 Config | Description
 --- | ---
-`delay` | Delay to turn the TV off after the off notification was sent. <br />Default: `5000`
-`useFacialRecognitionOCV3`| Use the module MMM-Facial-Recognition-OCV3 to control the TV<br />Default: `false`
+`delay` | Delay to turn the TV off after the off notification was sent. <br />**Default Value:** `15000`
+`useFacialRecognitionOCV3`| Use the module MMM-Facial-Recognition-OCV3 to control the TV<br />**Default Value:** `false`
 
 ### Full configuration of the module
 
@@ -20,7 +20,7 @@ Config | Description
     module: 'MMM-CECControl',
     config: {
         // Delay to turn the TV off
-        delay: 5000,
+        delay: 15000,
         // Use the module MMM-Facial-Recognition-OCV3
         useFacialRecognitionOCV3: false
     }
