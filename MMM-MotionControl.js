@@ -9,7 +9,9 @@ Module.register("MMM-MotionControl",{
 	defaults: {
     delay: 5000,
     useFacialRecognitionOCV3: false
-	},
+  },
+
+  timeout: null,
 
   notificationReceived: function(notification, payload, sender) {
     if (this.config.useFacialRecognitionOCV3 === true) {
@@ -18,14 +20,16 @@ Module.register("MMM-MotionControl",{
   },
 
   handleFacialRecognitionOCV3: function(notification, payload, sender) {
+    _self = this;
     if (notification === 'CURRENT_USER') {
       Log.log(this.name + " received a module notification: " + notification + " with payload " + payload);
 
       if (payload === 'None') {
-        setTimeout(function() {
+        _self.timeout = setTimeout(function() {
           this.sendNotification('CECControl', 'off');
         }, this.config.delay);
       } else {
+        clearTimeout(_self.timeout);
         this.sendNotification('CECControl', 'on');
       }
     }
