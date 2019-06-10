@@ -20,7 +20,7 @@ Module.register("MMM-MotionControl",{
   },
 
   handleFacialRecognitionOCV3: function(notification, payload, sender) {
-    _self = this;
+    var _self = this;
     if (notification === 'CURRENT_USER') {
       Log.log(this.name + " received a module notification: " + notification + " with payload " + payload);
 
