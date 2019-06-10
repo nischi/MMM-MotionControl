@@ -17,7 +17,7 @@ Config | Description
 
 ```javascript
 {
-    module: 'MMM-CECControl',
+    module: 'MMM-MotionControl',
     config: {
         // Delay to turn the TV off
         delay: 15000,
