@@ -50,7 +50,7 @@ Module.register("MMM-MotionControl",{
     if (notification === 'LOGGED_IN_USERS') {
       Log.log(this.name + " received a module notification: " + notification + " with payload " + payload);
 
-      if (payload.length > 0) {
+      if (payload.length === 0) {
         _self.timeout = setTimeout(function() {
           this.sendNotification('CECControl', 'off');
         }, this.config.delay);
