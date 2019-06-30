@@ -16,6 +16,8 @@ Module.register("MMM-MotionControl",{
   timeout: null,
 
 	start: function() {
+    var self = this;
+
     if (this.config.useMMMFaceRecoDNN === true) {
       setInterval(function() {
         self.sendNotification("GET_LOGGED_IN_USERS");
@@ -24,8 +26,6 @@ Module.register("MMM-MotionControl",{
 	},
 
   notificationReceived: function(notification, payload, sender) {
-    var self = this;
-
     if (this.config.useFacialRecognitionOCV3 === true) {
       this.handleFacialRecognitionOCV3(notification, payload, sender);
     }
