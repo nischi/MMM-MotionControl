@@ -15,6 +15,14 @@ Module.register("MMM-MotionControl",{
 
   timeout: null,
 
+	start: function() {
+    if (this.config.useMMMFaceRecoDNN === true) {
+      setInterval(function() {
+        self.sendNotification("GET_LOGGED_IN_USERS");
+      }, this.config.interval);
+    }
+	},
+
   notificationReceived: function(notification, payload, sender) {
     var self = this;
 
@@ -22,9 +30,6 @@ Module.register("MMM-MotionControl",{
       this.handleFacialRecognitionOCV3(notification, payload, sender);
     }
     if (this.config.useMMMFaceRecoDNN === true) {
-      setInterval(function() {
-        self.sendNotification("GET_LOGGED_IN_USERS");
-      }, this.config.interval);
       this.handleFaceRecoDNN(notification, payload, sender);
     }
   },
