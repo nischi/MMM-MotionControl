@@ -41,11 +41,11 @@ Module.register("MMM-MotionControl",{
 
       if (payload === 'None') {
         _self.timeout = setTimeout(function() {
-          this.sendNotification('CECControl', 'off');
+          _self.sendNotification('CECControl', 'off');
         }, this.config.delay);
       } else {
         clearTimeout(_self.timeout);
-        this.sendNotification('CECControl', 'on');
+        _self.sendNotification('CECControl', 'on');
       }
     }
   },
@@ -57,11 +57,11 @@ Module.register("MMM-MotionControl",{
 
       if (payload.length === 0) {
         _self.timeout = setTimeout(function() {
-          this.sendNotification('CECControl', 'off');
+          _self.sendNotification('CECControl', 'off');
         }, this.config.delay);
       } else {
         clearTimeout(_self.timeout);
-        this.sendNotification('CECControl', 'on');
+        _self.sendNotification('CECControl', 'on');
       }
     }
   }
