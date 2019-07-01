@@ -53,7 +53,7 @@ Module.register("MMM-MotionControl",{
   handleFaceRecoDNN: function(notification, payload, sender) {
     var _self = this;
     if (notification === 'LOGGED_IN_USERS') {
-      Log.log(this.name + " received a module notification: " + notification + " with payload " + payload);
+      Log.log(this.name + " received a module notification: " + notification + " with payload " + payload.length);
 
       if (payload.length === 0) {
         _self.timeout = setTimeout(function() {
