@@ -5,8 +5,6 @@
  * MIT Licensed.
  */
 
-require('moment');
-
 Module.register("MMM-MotionControl",{
 	defaults: {
     delay: 15000,
@@ -17,6 +15,10 @@ Module.register("MMM-MotionControl",{
   },
 
   timeout: null,
+
+  getScripts: function() {
+    return ["moment.js"];
+  },
 
 	start: function() {
     var self = this;
@@ -30,11 +32,10 @@ Module.register("MMM-MotionControl",{
 
   inOnTime: function() {
     var inOnTime = false;
-    var today = moment().startOf('day');
     this.config.ontime.forEach(time => {
       var split = time.split('-');
-      var from = today.add(split[0].substr(0, 2), 'h').add(split[0].substr(2, 2), 'm');
-      var to = today.add(split[1].substr(0, 2), 'h').add(split[1].substr(2, 2), 'm');
+      var from = moment().startOf('day').add(split[0].substr(0, 2), 'h').add(split[0].substr(2, 2), 'm');
+      var to = moment().startOf('day').add(split[1].substr(0, 2), 'h').add(split[1].substr(2, 2), 'm');
 
       if (moment().isBetween(from, to)) {
         inOnTime = true;
@@ -46,7 +47,7 @@ Module.register("MMM-MotionControl",{
 
   notificationReceived: function(notification, payload, sender) {
     if (this.inOnTime()) {
-      _self.sendNotification('CECControl', 'on');
+      this.sendNotification('CECControl', 'on');
     } else {
       if (this.config.useFacialRecognitionOCV3 === true) {
         this.handleFacialRecognitionOCV3(notification, payload, sender);
