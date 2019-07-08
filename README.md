@@ -18,6 +18,7 @@ Config | Description
 `interval` | Interval to check modules. <br />**Default Value:** `5000`
 `useFacialRecognitionOCV3`| Use the module MMM-Facial-Recognition-OCV3 to control the TV<br />**Default Value:** `false`
 `useMMMFaceRecoDNN`| Use the module MMM-Face-Reco-DNN to control the TV<br />**Default Value:** `false`
+`ontime`| Time where TV is always on. Array with times `['0700-1200', '1300-2000']`.<br />**Default Value:** `[]`
 
 ### Full configuration of the module
 
@@ -32,7 +33,9 @@ Config | Description
         // Use the module MMM-Facial-Recognition-OCV3
         useFacialRecognitionOCV3: false,
         // Use the module MMM-Face-Reco-DNN
-        useMMMFaceRecoDNN: false
+        useMMMFaceRecoDNN: false,
+        // Array where tv should be on
+        ontime: []
     }
 }
 ```

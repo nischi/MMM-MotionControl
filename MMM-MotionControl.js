@@ -5,12 +5,15 @@
  * MIT Licensed.
  */
 
+require('moment');
+
 Module.register("MMM-MotionControl",{
 	defaults: {
     delay: 15000,
     interval: 5000,
     useFacialRecognitionOCV3: false,
-    useMMMFaceRecoDNN: false
+    useMMMFaceRecoDNN: false,
+    ontime: []
   },
 
   timeout: null,
@@ -23,14 +26,34 @@ Module.register("MMM-MotionControl",{
         self.sendNotification("GET_LOGGED_IN_USERS");
       }, this.config.interval);
     }
-	},
+  },
+
+  inOnTime: function() {
+    var inOnTime = false;
+    var today = moment().startOf('day');
+    this.config.ontime.forEach(time => {
+      var split = time.split('-');
+      var from = today.add(split[0].substr(0, 2), 'h').add(split[0].substr(2, 2), 'm');
+      var to = today.add(split[1].substr(0, 2), 'h').add(split[1].substr(2, 2), 'm');
+
+      if (moment().isBetween(from, to)) {
+        inOnTime = true;
+      }
+    });
+
+    return inOnTime;
+  },
 
   notificationReceived: function(notification, payload, sender) {
-    if (this.config.useFacialRecognitionOCV3 === true) {
-      this.handleFacialRecognitionOCV3(notification, payload, sender);
-    }
-    if (this.config.useMMMFaceRecoDNN === true) {
-      this.handleFaceRecoDNN(notification, payload, sender);
+    if (this.inOnTime()) {
+      _self.sendNotification('CECControl', 'on');
+    } else {
+      if (this.config.useFacialRecognitionOCV3 === true) {
+        this.handleFacialRecognitionOCV3(notification, payload, sender);
+      }
+      if (this.config.useMMMFaceRecoDNN === true) {
+        this.handleFaceRecoDNN(notification, payload, sender);
+      }
     }
   },
 

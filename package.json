@@ -1,0 +1,28 @@
+{
+  "name": "mmm-motioncontrol",
+  "version": "1.0.0",
+  "description": "Magic Mirror Module to check motion and turn tv on or off",
+  "main": "MMM-MotionControl.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nischi/MMM-MotionControl.git"
+  },
+  "keywords": [
+    "motion",
+    "control",
+    "magicmirror",
+    "module"
+  ],
+  "author": "Thierry Nischelwitzer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nischi/MMM-MotionControl/issues"
+  },
+  "homepage": "https://github.com/nischi/MMM-MotionControl#readme",
+  "dependencies": {
+    "moment": "^2.24.0"
+  }
+}
