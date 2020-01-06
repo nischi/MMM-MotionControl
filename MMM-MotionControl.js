@@ -64,11 +64,14 @@ Module.register("MMM-MotionControl",{
       Log.log(this.name + " received a module notification: " + notification + " with payload " + payload);
 
       if (payload === 'None') {
-        _self.timeout = setTimeout(function() {
-          _self.sendNotification('CECControl', 'off');
-        }, this.config.delay);
+	     if(_self.timeout === null ) {
+		_self.timeout = setTimeout(function() {
+		  _self.sendNotification('CECControl', 'off');
+		}, this.config.delay);
+	     }
       } else {
         clearTimeout(_self.timeout);
+	_self.timeout = null;
         _self.sendNotification('CECControl', 'on');
       }
     }
@@ -80,11 +83,14 @@ Module.register("MMM-MotionControl",{
       Log.log(this.name + " received a module notification: " + notification + " with payload " + payload.length);
 
       if (payload.length === 0) {
-        _self.timeout = setTimeout(function() {
-          _self.sendNotification('CECControl', 'off');
-        }, this.config.delay);
+	     if(_self.timeout === null ) {
+		_self.timeout = setTimeout(function() {
+		  _self.sendNotification('CECControl', 'off');
+		}, this.config.delay);
+	     }
       } else {
         clearTimeout(_self.timeout);
+	_self.timeout = null;
         _self.sendNotification('CECControl', 'on');
       }
     }
