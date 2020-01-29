@@ -1,6 +1,6 @@
 {
   "name": "mmm-motioncontrol",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Magic Mirror Module to check motion and turn tv on or off",
   "main": "MMM-MotionControl.js",
   "scripts": {
