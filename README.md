@@ -17,7 +17,8 @@ node_helper  ──spawn──►  rpicam-vid (Pi Camera)  |  ffmpeg scdet (USB 
      │  motion events
      ▼
 MMM-MotionControl  ──►  CECControl on/off   (turn the TV on/off)
-     └────────────►  MOTION_WAKE + GET_LOGGED_IN_USERS   (wake face recognition)
+     ├────────────►  MOTION_WAKE + GET_LOGGED_IN_USERS   (motion starts: wake face recognition)
+     └────────────►  MOTION_CLEARED                      (motion stops: face recognition can stand down)
 ```
 
 Motion detection runs on a tiny low-resolution stream at a low frame rate, so it stays very light on a Raspberry Pi. The Pi Camera path (`rpicam-vid`'s native `motion_detect` post-processing stage) is the recommended, lowest-CPU option; the USB path is a fallback and costs noticeably more CPU.
@@ -44,28 +45,29 @@ Then add the module to the `modules` array in `~/MagicMirror/config/config.js` (
 
 ## Configuration
 
-| Config                     | Description                                                                                         | Default         |
-| -------------------------- | --------------------------------------------------------------------------------------------------- | --------------- |
-| `delay`                    | Delay (ms) before turning the TV off once every presence source is quiet.                           | `15000`         |
-| `interval`                 | Poll interval (ms) for MMM-Face-Reco-DNN.                                                           | `5000`          |
-| `useFacialRecognitionOCV3` | Use MMM-Facial-Recognition-OCV3 as a presence source.                                               | `false`         |
-| `useMMMFaceRecoDNN`        | Use MMM-Face-Reco-DNN as a presence source.                                                         | `false`         |
-| `ontime`                   | Time windows where the TV is always on, e.g. `['0700-1200', '1300-2000']` (does not span midnight). | `[]`            |
-| `useCameraMotion`          | Master switch for the built-in camera motion detector.                                              | `false`         |
-| `camera`                   | Capture backend: `'auto'` \| `'rpicam'` (Pi Camera / CSI) \| `'usb'` (webcam).                      | `'auto'`        |
-| `usbDevice`                | V4L2 device for the USB backend (and the `'auto'` fallback).                                        | `'/dev/video0'` |
-| `loresWidth`               | Low-res stream width the motion analysis runs on (rpicam).                                          | `128`           |
-| `loresHeight`              | Low-res stream height (rpicam).                                                                     | `96`            |
-| `framerate`                | Capture frame rate for both backends. Low fps = low CPU.                                            | `5`             |
-| `mainWidth`                | rpicam main stream width (discarded; kept small).                                                   | `1280`          |
-| `mainHeight`               | rpicam main stream height.                                                                          | `720`           |
-| `motionSensitivity`        | rpicam `motion_detect` tuning (see below).                                                          | see below       |
-| `sceneThreshold`           | ffmpeg `scdet` threshold for the USB backend (lower = more sensitive).                              | `12`            |
-| `usbHoldMs`                | USB: how long (ms) to sustain "motion" between scene-change events.                                 | `2000`          |
-| `motionDebounce`           | Falling-edge debounce (ms) applied to the raw camera signal.                                        | `1500`          |
-| `motionOnPattern`          | Advanced: regex (string) overriding the rpicam "motion on" log matcher.                             | `null`          |
-| `motionOffPattern`         | Advanced: regex (string) overriding the rpicam "motion off" log matcher.                            | `null`          |
-| `wakeNotification`         | Notification broadcast on the camera-motion rising edge (to wake other modules).                    | `'MOTION_WAKE'` |
+| Config                     | Description                                                                                                                                | Default            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| `delay`                    | Delay (ms) before turning the TV off once every presence source is quiet.                                                                  | `15000`            |
+| `interval`                 | Poll interval (ms) for MMM-Face-Reco-DNN.                                                                                                  | `5000`             |
+| `useFacialRecognitionOCV3` | Use MMM-Facial-Recognition-OCV3 as a presence source.                                                                                      | `false`            |
+| `useMMMFaceRecoDNN`        | Use MMM-Face-Reco-DNN as a presence source.                                                                                                | `false`            |
+| `ontime`                   | Time windows where the TV is always on, e.g. `['0700-1200', '1300-2000']` (does not span midnight).                                        | `[]`               |
+| `useCameraMotion`          | Master switch for the built-in camera motion detector.                                                                                     | `false`            |
+| `camera`                   | Capture backend: `'auto'` \| `'rpicam'` (Pi Camera / CSI) \| `'usb'` (webcam).                                                             | `'auto'`           |
+| `usbDevice`                | V4L2 device for the USB backend (and the `'auto'` fallback).                                                                               | `'/dev/video0'`    |
+| `loresWidth`               | Low-res stream width the motion analysis runs on (rpicam).                                                                                 | `128`              |
+| `loresHeight`              | Low-res stream height (rpicam).                                                                                                            | `96`               |
+| `framerate`                | Capture frame rate for both backends. Low fps = low CPU.                                                                                   | `5`                |
+| `mainWidth`                | rpicam main stream width (discarded; kept small).                                                                                          | `1280`             |
+| `mainHeight`               | rpicam main stream height.                                                                                                                 | `720`              |
+| `motionSensitivity`        | rpicam `motion_detect` tuning (see below).                                                                                                 | see below          |
+| `sceneThreshold`           | ffmpeg `scdet` threshold for the USB backend (lower = more sensitive).                                                                     | `12`               |
+| `usbHoldMs`                | USB: how long (ms) to sustain "motion" between scene-change events.                                                                        | `2000`             |
+| `motionDebounce`           | Falling-edge debounce (ms) applied to the raw camera signal.                                                                               | `1500`             |
+| `motionOnPattern`          | Advanced: regex (string) overriding the rpicam "motion on" log matcher.                                                                    | `null`             |
+| `motionOffPattern`         | Advanced: regex (string) overriding the rpicam "motion off" log matcher.                                                                   | `null`             |
+| `wakeNotification`         | Notification broadcast on the camera-motion rising edge (to wake other modules).                                                           | `'MOTION_WAKE'`    |
+| `clearedNotification`      | Notification broadcast on the camera-motion falling edge (after `motionDebounce`), so other modules know motion is gone. Falsy = disabled. | `'MOTION_CLEARED'` |
 
 ### `motionSensitivity` (rpicam)
 
@@ -92,10 +94,23 @@ motionSensitivity: {
 The module **emits**:
 
 - `CECControl` with payload `'on'` / `'off'` — to MMM-CECControl.
-- `MOTION_WAKE` (configurable via `wakeNotification`) — broadcast when camera motion starts.
+- `MOTION_WAKE` (configurable via `wakeNotification`) — broadcast when camera motion **starts**.
+- `MOTION_CLEARED` (configurable via `clearedNotification`) — broadcast when camera motion **stops** (after `motionDebounce`), so face recognition and other modules can stand down.
 - `GET_LOGGED_IN_USERS` — to poll / wake MMM-Face-Reco-DNN.
 
 It **listens for** `CURRENT_USER` (OCV3) and `LOGGED_IN_USERS` (DNN).
+
+### Event flow
+
+| Trigger                               | Notifications emitted                                    |
+| ------------------------------------- | -------------------------------------------------------- |
+| Motion starts                         | `MOTION_WAKE`, `GET_LOGGED_IN_USERS`, `CECControl: 'on'` |
+| Motion continues                      | _(nothing — already on)_                                 |
+| Motion stops (after `motionDebounce`) | `MOTION_CLEARED` — the TV is **not** turned off yet      |
+| Everyone gone (after `delay`)         | `CECControl: 'off'`                                      |
+| Motion/face returns during a wait     | _(nothing — pending timers are cancelled)_               |
+
+Note: `MOTION_WAKE` / `MOTION_CLEARED` are module-bus broadcasts (subscribe with `notificationReceived`). The TV only turns off after `delay` once **every** source — camera motion, face recognition, and `ontime` — is quiet.
 
 ## Full configuration example
 
@@ -127,7 +142,8 @@ It **listens for** `CURRENT_USER` (OCV3) and `LOGGED_IN_USERS` (DNN).
             framePeriod: 5,
             roi: [0.0, 0.0, 1.0, 1.0]
         },
-        wakeNotification: 'MOTION_WAKE'
+        wakeNotification: 'MOTION_WAKE',
+        clearedNotification: 'MOTION_CLEARED'
     }
 }
 ```

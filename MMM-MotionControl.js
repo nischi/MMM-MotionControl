@@ -62,6 +62,10 @@ Module.register('MMM-MotionControl', {
 
     // Broadcast on the camera-motion rising edge to wake other modules.
     wakeNotification: 'MOTION_WAKE',
+    // Broadcast on the camera-motion falling edge (after motionDebounce) so
+    // other modules (e.g. face recognition) know motion is gone. Set to a
+    // falsy value to disable.
+    clearedNotification: 'MOTION_CLEARED',
   },
 
   // --- runtime state ---
@@ -190,6 +194,9 @@ Module.register('MMM-MotionControl', {
     if (motion === true) {
       // Rising edge: wake face recognition. It then keeps the TV alive.
       this.wakeFaceRecognition();
+    } else {
+      // Falling edge: tell other modules motion is gone.
+      this.notifyMotionCleared();
     }
     this.evaluatePresence();
   },
@@ -201,6 +208,12 @@ Module.register('MMM-MotionControl', {
     }
     if (this.config.wakeNotification) {
       this.sendNotification(this.config.wakeNotification);
+    }
+  },
+
+  notifyMotionCleared: function () {
+    if (this.config.clearedNotification) {
+      this.sendNotification(this.config.clearedNotification);
     }
   },
 

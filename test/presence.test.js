@@ -39,6 +39,21 @@ test('camera motion turns the TV on exactly once and wakes face recognition', ()
   );
 });
 
+test('camera-motion falling edge broadcasts the cleared notification', () => {
+  const { mod, notifications } = loadClientModule();
+  withConfig(mod, { delay: 15000 });
+  mod.start();
+
+  mod.socketNotificationReceived('MOTION_DETECTED');
+  notifications.length = 0;
+  mod.socketNotificationReceived('MOTION_CLEARED');
+
+  assert.ok(
+    names(notifications).includes('MOTION_CLEARED'),
+    'broadcasts MOTION_CLEARED on the module bus so face-reco can hear it'
+  );
+});
+
 test('TV turns off only after delay once motion clears', () => {
   const { mod, notifications } = loadClientModule();
   withConfig(mod, { delay: 15000 });
