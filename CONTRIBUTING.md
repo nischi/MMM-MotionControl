@@ -15,7 +15,7 @@ Please only submit reproducible issues.
 
 When submitting a new issue, please supply the following information:
 
-**Platform**: Place your platform here... give us your web browser/Electron version *and* your hardware (Raspberry Pi 2/3, Windows, Mac, Linux, System V UNIX).
+**Platform**: Place your platform here... give us your web browser/Electron version _and_ your hardware (Raspberry Pi 2/3, Windows, Mac, Linux, System V UNIX).
 
 **Node Version**: Version of your Node.
 

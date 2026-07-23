@@ -1,0 +1,15 @@
+{
+  "motion_detect": {
+    "roi_x": 0.0,
+    "roi_y": 0.0,
+    "roi_width": 1.0,
+    "roi_height": 1.0,
+    "difference_m": 0.1,
+    "difference_c": 10,
+    "region_threshold": 0.005,
+    "frame_period": 5,
+    "hskip": 2,
+    "vskip": 2,
+    "verbose": 1
+  }
+}
