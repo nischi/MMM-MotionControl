@@ -14,34 +14,57 @@ The TV turns **off** only after `delay` has elapsed with **all** sources quiet.
 
 ```
 node_helper  ──spawn──►  rpicam-vid (Pi Camera)  |  ffmpeg scdet (USB webcam)
-     │  motion events
+     │  motion events (MOTION_DETECTED / MOTION_CLEARED)
      ▼
 MMM-MotionControl  ──►  CECControl on/off   (turn the TV on/off)
      ├────────────►  MOTION_WAKE + GET_LOGGED_IN_USERS   (motion starts: wake face recognition)
      └────────────►  MOTION_CLEARED                      (motion stops: face recognition can stand down)
 ```
 
-Motion detection runs on a tiny low-resolution stream at a low frame rate, so it stays very light on a Raspberry Pi. The Pi Camera path (`rpicam-vid`'s native `motion_detect` post-processing stage) is the recommended, lowest-CPU option; the USB path is a fallback and costs noticeably more CPU.
+**Presence model.** The three sources are OR-ed together. The moment _any_ of them is active the TV is switched **on**; it is switched **off** only after `delay` has elapsed with _all_ of them quiet, tracked by a single shared timer. Repeated "on" is de-duplicated, so `CECControl` only fires on real transitions.
+
+**Motion wakes, face keeps alive.** Detecting movement is far cheaper than running face recognition all the time, so camera motion is the "gate": when motion starts it instantly turns the TV on and wakes the face-recognition modules (`MOTION_WAKE` + a fresh `GET_LOGGED_IN_USERS` scan). Once someone is actually recognized, _their_ presence keeps the TV on even after they stop moving. When motion stops, `MOTION_CLEARED` lets those modules stand back down.
+
+**Lightweight by design.** Motion analysis runs on a tiny low-resolution stream at a low frame rate. On a Raspberry Pi Camera it uses `rpicam-vid`'s built-in `motion_detect` stage (hardware-assisted, very low CPU) — the recommended path. A USB webcam is supported as a fallback via `ffmpeg` scene-change detection, which costs noticeably more CPU.
+
+You don't need all three sources — the module works with camera motion alone, face recognition alone, `ontime` alone, or any combination.
+
+## Requirements
+
+- A running [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror) instance (Node 18 or newer).
+- [MMM-CECControl](https://github.com/nischi/MMM-CECControl) installed — this module tells it to switch the TV over HDMI-CEC.
+- At least one presence source:
+  - **Raspberry Pi Camera / CSI** → `rpicam-apps` (`rpicam-vid`), preinstalled on Raspberry Pi OS Bookworm. _Recommended, lowest CPU._
+  - **USB webcam** → `ffmpeg` (`sudo apt install ffmpeg`). Software-decoded, so materially heavier than the Pi Camera — keep the resolution/frame rate low.
+  - **Face recognition (optional)** → [MMM-Facial-Recognition-OCV3](https://github.com/normyx/MMM-Facial-Recognition-OCV3) and/or [MMM-Face-Reco-DNN](https://github.com/nischi/MMM-Face-Reco-DNN).
 
 ## Installation
 
-```bash
-cd ~/MagicMirror/modules
-git clone https://github.com/nischi/MMM-MotionControl.git
-cd MMM-MotionControl
-npm install
-```
+1. **Install the module** into your MagicMirror:
 
-Then add the module to the `modules` array in `~/MagicMirror/config/config.js` (see the example below).
+   ```bash
+   cd ~/MagicMirror/modules
+   git clone https://github.com/nischi/MMM-MotionControl.git
+   cd MMM-MotionControl
+   npm install
+   ```
 
-## Prerequisites
+2. **Install the backend for your camera** (skip if you only use face recognition or `ontime`):
 
-- **Raspberry Pi OS Bookworm (or newer)** with **`rpicam-apps`** installed (`rpicam-vid` on `PATH`) for the Pi Camera Module / CSI camera. This is preinstalled on recent Raspberry Pi OS images.
-- **`ffmpeg`** installed for the USB-webcam backend (`sudo apt install ffmpeg`).
-- The companion module [MMM-CECControl](https://github.com/nischi/MMM-CECControl) to actually switch the TV.
-- The face-recognition modules are **optional** — the module works with camera motion alone.
+   ```bash
+   # Raspberry Pi Camera (CSI) — usually already present on Bookworm:
+   rpicam-vid --version              # verify it is installed
+   rpicam-hello --list-cameras       # verify the camera is detected
 
-> **USB CPU note:** the USB backend decodes video in software and is materially heavier than the Pi Camera path. Keep the resolution and frame rate low, and prefer the Pi Camera Module where possible.
+   # USB webcam:
+   sudo apt install ffmpeg
+   ```
+
+3. **Configure it.** Add the module to the `modules` array in `~/MagicMirror/config/config.js`, starting from a [recipe](#setup-recipes) below.
+
+4. **Restart MagicMirror.**
+
+> **Tip:** before enabling the module, confirm your camera actually detects motion with the standalone tester — see [Verifying the camera](#verifying-the-camera) (Pi) or [Live camera test](#live-camera-test-no-magicmirror-needed) (any machine).
 
 ## Configuration
 
@@ -114,6 +137,62 @@ It **listens for** `CURRENT_USER` (OCV3) and `LOGGED_IN_USERS` (DNN).
 | Motion/face returns during a wait     | _(nothing — pending timers are cancelled)_               |
 
 Note: `MOTION_WAKE` / `MOTION_CLEARED` are module-bus broadcasts (subscribe with `notificationReceived`). The TV only turns off after `delay` once **every** source — camera motion, face recognition, and `ontime` — is quiet.
+
+## Setup recipes
+
+Pick the one that matches your setup and drop it into the `modules` array in `config.js`. Every unset option keeps its default.
+
+**A) Motion only — the simplest (Pi Camera turns the TV on/off):**
+
+```javascript
+{
+    module: 'MMM-MotionControl',
+    config: {
+        useCameraMotion: true,
+        camera: 'rpicam',   // 'auto' also works
+        delay: 15000
+    }
+}
+```
+
+**B) Motion + face recognition (recommended — motion wakes, face keeps alive):**
+
+```javascript
+{
+    module: 'MMM-MotionControl',
+    config: {
+        useCameraMotion: true,
+        camera: 'auto',
+        useMMMFaceRecoDNN: true,      // and/or useFacialRecognitionOCV3: true
+        delay: 30000
+    }
+}
+```
+
+**C) USB webcam instead of the Pi Camera:**
+
+```javascript
+{
+    module: 'MMM-MotionControl',
+    config: {
+        useCameraMotion: true,
+        camera: 'usb',
+        usbDevice: '/dev/video0',
+        sceneThreshold: 0.4           // tune with usbDebug: true
+    }
+}
+```
+
+**D) No camera — time windows only:**
+
+```javascript
+{
+    module: 'MMM-MotionControl',
+    config: {
+        ontime: ['0700-0900', '1800-2300']
+    }
+}
+```
 
 ## Full configuration example
 
