@@ -173,12 +173,13 @@ module.exports = NodeHelper.create({
   startUsb: function () {
     const c = this.config;
     const fr = c.framerate != null ? c.framerate : 5;
-    const threshold = c.sceneThreshold != null ? c.sceneThreshold : 12;
+    const threshold = c.sceneThreshold != null ? c.sceneThreshold : 0.4;
 
     // Downscale + drop fps in the filter graph, run scene-change detection, and
-    // print frame metadata. scdet sets `lavfi.scd.time` only when a change is
-    // detected, so that line is our motion edge. Same graph on every platform;
-    // only the capture input differs (V4L2 on Linux, AVFoundation on macOS).
+    // print frame metadata. scdet sets `lavfi.scd.time` only when the score
+    // crosses the threshold, so that line is our motion edge. Same graph on
+    // every platform; only the capture input differs (V4L2 on Linux,
+    // AVFoundation on macOS).
     const vf =
       'fps=' +
       fr +
@@ -189,10 +190,20 @@ module.exports = NodeHelper.create({
     let inputArgs;
     if (process.platform === 'darwin') {
       // AVFoundation addresses cameras by index; '0' is the default camera.
-      // (A '/dev/...' path is meaningless here, so fall back to '0'.)
+      // (A '/dev/...' path is meaningless here, so fall back to '0'.) It also
+      // rejects arbitrary capture modes, so pin a mode the camera supports.
       const device =
         c.usbDevice && !c.usbDevice.startsWith('/dev/') ? c.usbDevice : '0';
-      inputArgs = ['-f', 'avfoundation', '-i', device];
+      inputArgs = [
+        '-f',
+        'avfoundation',
+        '-framerate',
+        String(c.usbInputFramerate != null ? c.usbInputFramerate : 30),
+        '-video_size',
+        c.usbInputSize || '640x480',
+        '-i',
+        device,
+      ];
     } else {
       const device = c.usbDevice || '/dev/video0';
       inputArgs = [
@@ -201,7 +212,7 @@ module.exports = NodeHelper.create({
         '-framerate',
         String(fr),
         '-video_size',
-        '160x120',
+        c.usbInputSize || '160x120',
         '-i',
         device,
       ];
@@ -317,6 +328,10 @@ module.exports = NodeHelper.create({
   },
 
   handleUsbLine: function (line) {
+    // With usbDebug on, echo the per-frame score so a threshold can be tuned.
+    if (this.config.usbDebug && /scd\.score/i.test(line)) {
+      Log.info('MMM-MotionControl: ' + line.trim());
+    }
     // scdet sets `lavfi.scd.time` only on a detected scene change — one line
     // per motion edge. (`lavfi.scd.score` is printed every frame; ignore it.)
     if (/scd\.time/i.test(line)) {

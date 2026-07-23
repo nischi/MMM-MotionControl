@@ -45,29 +45,32 @@ Then add the module to the `modules` array in `~/MagicMirror/config/config.js` (
 
 ## Configuration
 
-| Config                     | Description                                                                                                                                | Default            |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
-| `delay`                    | Delay (ms) before turning the TV off once every presence source is quiet.                                                                  | `15000`            |
-| `interval`                 | Poll interval (ms) for MMM-Face-Reco-DNN.                                                                                                  | `5000`             |
-| `useFacialRecognitionOCV3` | Use MMM-Facial-Recognition-OCV3 as a presence source.                                                                                      | `false`            |
-| `useMMMFaceRecoDNN`        | Use MMM-Face-Reco-DNN as a presence source.                                                                                                | `false`            |
-| `ontime`                   | Time windows where the TV is always on, e.g. `['0700-1200', '1300-2000']` (does not span midnight).                                        | `[]`               |
-| `useCameraMotion`          | Master switch for the built-in camera motion detector.                                                                                     | `false`            |
-| `camera`                   | Capture backend: `'auto'` \| `'rpicam'` (Pi Camera / CSI) \| `'usb'` (webcam).                                                             | `'auto'`           |
-| `usbDevice`                | V4L2 device for the USB backend (and the `'auto'` fallback).                                                                               | `'/dev/video0'`    |
-| `loresWidth`               | Low-res stream width the motion analysis runs on (rpicam).                                                                                 | `128`              |
-| `loresHeight`              | Low-res stream height (rpicam).                                                                                                            | `96`               |
-| `framerate`                | Capture frame rate for both backends. Low fps = low CPU.                                                                                   | `5`                |
-| `mainWidth`                | rpicam main stream width (discarded; kept small).                                                                                          | `1280`             |
-| `mainHeight`               | rpicam main stream height.                                                                                                                 | `720`              |
-| `motionSensitivity`        | rpicam `motion_detect` tuning (see below).                                                                                                 | see below          |
-| `sceneThreshold`           | ffmpeg `scdet` threshold for the USB backend (lower = more sensitive).                                                                     | `12`               |
-| `usbHoldMs`                | USB: how long (ms) to sustain "motion" between scene-change events.                                                                        | `2000`             |
-| `motionDebounce`           | Falling-edge debounce (ms) applied to the raw camera signal.                                                                               | `1500`             |
-| `motionOnPattern`          | Advanced: regex (string) overriding the rpicam "motion on" log matcher.                                                                    | `null`             |
-| `motionOffPattern`         | Advanced: regex (string) overriding the rpicam "motion off" log matcher.                                                                   | `null`             |
-| `wakeNotification`         | Notification broadcast on the camera-motion rising edge (to wake other modules).                                                           | `'MOTION_WAKE'`    |
-| `clearedNotification`      | Notification broadcast on the camera-motion falling edge (after `motionDebounce`), so other modules know motion is gone. Falsy = disabled. | `'MOTION_CLEARED'` |
+| Config                     | Description                                                                                                                                                  | Default            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| `delay`                    | Delay (ms) before turning the TV off once every presence source is quiet.                                                                                    | `15000`            |
+| `interval`                 | Poll interval (ms) for MMM-Face-Reco-DNN.                                                                                                                    | `5000`             |
+| `useFacialRecognitionOCV3` | Use MMM-Facial-Recognition-OCV3 as a presence source.                                                                                                        | `false`            |
+| `useMMMFaceRecoDNN`        | Use MMM-Face-Reco-DNN as a presence source.                                                                                                                  | `false`            |
+| `ontime`                   | Time windows where the TV is always on, e.g. `['0700-1200', '1300-2000']` (does not span midnight).                                                          | `[]`               |
+| `useCameraMotion`          | Master switch for the built-in camera motion detector.                                                                                                       | `false`            |
+| `camera`                   | Capture backend: `'auto'` \| `'rpicam'` (Pi Camera / CSI) \| `'usb'` (webcam).                                                                               | `'auto'`           |
+| `usbDevice`                | V4L2 device for the USB backend (and the `'auto'` fallback).                                                                                                 | `'/dev/video0'`    |
+| `loresWidth`               | Low-res stream width the motion analysis runs on (rpicam).                                                                                                   | `128`              |
+| `loresHeight`              | Low-res stream height (rpicam).                                                                                                                              | `96`               |
+| `framerate`                | Capture frame rate for both backends. Low fps = low CPU.                                                                                                     | `5`                |
+| `mainWidth`                | rpicam main stream width (discarded; kept small).                                                                                                            | `1280`             |
+| `mainHeight`               | rpicam main stream height.                                                                                                                                   | `720`              |
+| `motionSensitivity`        | rpicam `motion_detect` tuning (see below).                                                                                                                   | see below          |
+| `sceneThreshold`           | ffmpeg `scdet` score threshold for the USB backend. Scores are small for a mostly-static webcam (idle ~0.1, deliberate motion ~0.5); lower = more sensitive. | `0.4`              |
+| `usbInputFramerate`        | USB capture frame rate at the input. macOS AVFoundation only accepts modes the camera reports (usually 15/30); pin one here.                                 | `30`               |
+| `usbInputSize`             | USB capture resolution at the input (`null` → `640x480` on macOS, `160x120` on Linux). The filter graph downscales to 160x120 regardless.                    | `null`             |
+| `usbDebug`                 | USB: log every `scdet` score to help tune `sceneThreshold`.                                                                                                  | `false`            |
+| `usbHoldMs`                | USB: how long (ms) to sustain "motion" between scene-change events.                                                                                          | `2000`             |
+| `motionDebounce`           | Falling-edge debounce (ms) applied to the raw camera signal.                                                                                                 | `1500`             |
+| `motionOnPattern`          | Advanced: regex (string) overriding the rpicam "motion on" log matcher.                                                                                      | `null`             |
+| `motionOffPattern`         | Advanced: regex (string) overriding the rpicam "motion off" log matcher.                                                                                     | `null`             |
+| `wakeNotification`         | Notification broadcast on the camera-motion rising edge (to wake other modules).                                                                             | `'MOTION_WAKE'`    |
+| `clearedNotification`      | Notification broadcast on the camera-motion falling edge (after `motionDebounce`), so other modules know motion is gone. Falsy = disabled.                   | `'MOTION_CLEARED'` |
 
 ### `motionSensitivity` (rpicam)
 
@@ -177,9 +180,13 @@ You can point the real detector at any camera and watch the motion events in you
 npm run test:camera            # auto-detect backend
 node test/live-camera.js usb   # force the webcam backend (e.g. on macOS)
 node test/live-camera.js usb 1 # webcam, device index/path "1"
+
+# tune the USB threshold: print live scdet scores and/or set a threshold
+USB_DEBUG=1 node test/live-camera.js usb
+THRESHOLD=0.6 node test/live-camera.js usb
 ```
 
-Move in front of the camera; you'll see `🟢 MOTION DETECTED` / `⚪️ motion cleared`. Press Ctrl+C to stop. On macOS the first run triggers a camera-permission prompt for your terminal.
+Move in front of the camera; you'll see `🟢 MOTION DETECTED` / `⚪️ motion cleared`. Press Ctrl+C to stop. On macOS the first run triggers a camera-permission prompt for your terminal. If nothing triggers, run with `USB_DEBUG=1` to watch the scores and pick a `sceneThreshold` just above the idle level.
 
 ## Screenshot
 

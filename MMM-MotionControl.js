@@ -50,8 +50,17 @@ Module.register('MMM-MotionControl', {
       framePeriod: 5,
       roi: [0.0, 0.0, 1.0, 1.0],
     },
-    // ffmpeg scdet threshold for the USB backend.
-    sceneThreshold: 12,
+    // ffmpeg scdet score threshold for the USB backend. The score is small for
+    // a mostly-static webcam (idle ~0.1, deliberate motion ~0.5); lower = more
+    // sensitive. Tune with `usbDebug: true` (prints live scores to the log).
+    sceneThreshold: 0.4,
+    // USB capture mode. AVFoundation (macOS) rejects unsupported modes, so the
+    // input is pinned; V4L2 (Linux) also honours usbInputSize. The filter graph
+    // downscales to 160x120 and drops to `framerate` fps regardless.
+    usbInputFramerate: 30,
+    usbInputSize: null, // null → 640x480 on macOS, 160x120 on Linux
+    // USB: log per-frame scdet scores so `sceneThreshold` can be tuned.
+    usbDebug: false,
     // USB: how long (ms) to sustain "motion" between scene-change events.
     usbHoldMs: 2000,
     // Falling-edge debounce (ms) applied to the raw camera signal.
