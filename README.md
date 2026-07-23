@@ -188,6 +188,17 @@ THRESHOLD=0.6 node test/live-camera.js usb
 
 Move in front of the camera; you'll see `🟢 MOTION DETECTED` / `⚪️ motion cleared`. Press Ctrl+C to stop. On macOS the first run triggers a camera-permission prompt for your terminal. If nothing triggers, run with `USB_DEBUG=1` to watch the scores and pick a `sceneThreshold` just above the idle level.
 
+### Annotated recording (visual confirmation)
+
+To _see_ the events on the video, record a short clip with a red border drawn over every `MOTION_DETECTED…MOTION_CLEARED` interval (uses the real hold/debounce logic):
+
+```bash
+npm run test:record                 # 15s clip → motion-events.mp4
+SECONDS=20 node test/record-events.js 0   # 20s, device 0
+```
+
+It writes `motion-events.mp4` (git-ignored) — open it to confirm detection lines up with real movement.
+
 ## Screenshot
 
 There is nothing to screenshot — the module has no UI and only reacts to events to turn the TV on and off.
