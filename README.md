@@ -34,7 +34,7 @@ You don't need all three sources — the module works with camera motion alone, 
 - A running [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror) instance (Node 18 or newer).
 - [MMM-CECControl](https://github.com/nischi/MMM-CECControl) installed — this module tells it to switch the TV over HDMI-CEC.
 - At least one presence source:
-  - **Raspberry Pi Camera / CSI** → `rpicam-apps` (`rpicam-vid`), preinstalled on Raspberry Pi OS Bookworm. _Recommended, lowest CPU._
+  - **Raspberry Pi Camera / CSI** → `rpicam-apps` (`rpicam-vid`), usually preinstalled on Raspberry Pi OS Bookworm — install it with `sudo apt install rpicam-apps` if it is missing. _Recommended, lowest CPU._
   - **USB webcam** → `ffmpeg` (`sudo apt install ffmpeg`). Software-decoded, so materially heavier than the Pi Camera — keep the resolution/frame rate low.
   - **Face recognition (optional)** → [MMM-Facial-Recognition-OCV3](https://github.com/normyx/MMM-Facial-Recognition-OCV3) and/or [MMM-Face-Reco-DNN](https://github.com/nischi/MMM-Face-Reco-DNN).
 
@@ -54,6 +54,7 @@ You don't need all three sources — the module works with camera motion alone, 
    ```bash
    # Raspberry Pi Camera (CSI) — usually already present on Bookworm:
    rpicam-vid --version              # verify it is installed
+   sudo apt install rpicam-apps      # only if the command was not found
    rpicam-hello --list-cameras       # verify the camera is detected
 
    # USB webcam:
